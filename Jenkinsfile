@@ -1,39 +1,36 @@
 pipeline {
-    agent { label '' }
+    agent any
+
+    triggers {
+        githubPush()
+    }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Arun-niko/node-ci-project'
+                checkout scm
             }
         }
+
+        stage('Install Node') {
+            steps {
+                sh '''
+                    apt update
+                    apt install -y nodejs npm
+                '''
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
-        stage('Build') {
-            steps {
-                sh 'npm run build || echo "No build step available"'
-            }
-        }
-        stage('Archive Artifact') {
-            steps {
-                sh 'mkdir -p output'
-                sh 'cp -r * output || true'
-                archiveArtifacts artifacts: 'output/**', fingerprint: true
-            }
-        }
+
         stage('Test') {
             steps {
-                sh 'npm test || echo "No tests available"'
+                sh 'npm test'
             }
-        }
-    }
-
-    post {
-        always {
-            echo "Pipeline finished"
         }
     }
 }
