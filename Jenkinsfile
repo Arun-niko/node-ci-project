@@ -14,18 +14,40 @@ pipeline {
             }
         }
 
+        stage('Build') {
+            steps {
+                sh 'npm run build || echo "No build step available"'
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                sh 'mkdir -p output'
+                sh 'cp -r * output || true'
+                archiveArtifacts artifacts: 'output/**', fingerprint: true
+            }
+        }
+
         stage('Test') {
             steps {
-                sh 'npm test || echo "No tests found"'
+                sh 'npm test || echo "No tests available"'
             }
         }
     }
 
     post {
+        always {
+            echo "Pipeline finished"
+        }
         success {
-            echo "Build completed!"
+            mail to: 'arunniko12@gmail.com',
+                 subject: 'SUCCESS: Node CI Pipeline',
+                 body: 'Your CI pipeline executed successfully!'
+        }
+        failure {
+            mail to: 'arunniko12@gmail.com',
+                 subject: 'FAILED: Node CI Pipeline',
+                 body: 'Your CI pipeline has failed!'
         }
     }
 }
-
-#Hope everything is done
